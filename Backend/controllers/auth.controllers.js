@@ -62,3 +62,52 @@ export const signin = async (req, res, next) => {
     next(error);
   }
 };
+
+export const google = async (req, res, next) => {
+  const { name, email, photo } = req.body;
+  try {
+    const userExist = await User.findOne({ email });
+    if (userExist) {
+      const token = jwt.sign({ id: userExist._id }, process.env.SECRET_KEY);
+      const { password: pass, ...rest } = userExist._doc;
+      return res
+        .cookie("access_token", token, { httpOnly: true })
+        .status(200)
+        .json(rest);
+    } else {
+      const generatePassword =
+        Math.random().toString(36).slice(-8) +
+        Math.random().toString(36).slice(-8); // generate random password for google user lentgh 16
+      const hashedPassword = bcryptjs.hashSync(generatePassword, 10);
+      const username =
+        name.split(" ").join("").toLowerCase() +
+        Math.random().toString(36).slice(-5); // generate random username for google user
+      const newUser = await new User({
+        username,
+        email,
+        password: hashedPassword,
+        photo,
+      });
+      const savedUser = await newUser.save();
+      const token = jwt.sign({ id: savedUser._id }, process.env.SECRET_KEY);
+      const { password: pass, ...rest } = savedUser._doc;
+      res
+        .cookie("access_token", token, { httpOnly: true })
+        .status(200)
+        .json(rest);
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const signout = async (req, res, next) => {
+  try {
+    res.clearCookie("access_token");
+    res.status(200).json({
+      message: "Signout Successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};

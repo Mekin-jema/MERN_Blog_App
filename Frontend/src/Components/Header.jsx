@@ -1,10 +1,12 @@
-import { Navbar, TextInput, Button } from "flowbite-react";
-import React from "react";
+import { Navbar, TextInput, Button, Dropdown, Avatar } from "flowbite-react";
 import { Link, useLocation } from "react-router-dom";
 import { AiOutlineSearch } from "react-icons/ai";
 import { FaMoon } from "react-icons/fa";
+import { useSelector } from "react-redux";
 
 const Header = () => {
+  const { user } = useSelector((state) => state.user);
+  console.log("🚀 ~ Header ~ user:", user);
   const path = useLocation().pathname;
   return (
     <Navbar className="border-b-100 bg-cyan-950">
@@ -14,7 +16,7 @@ const Header = () => {
        "
       >
         <span className=" px- py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg text-white">
-          Mekin's{" "}
+          `Mekin's`
         </span>
         Blog
       </Link>
@@ -33,11 +35,29 @@ const Header = () => {
         <Button className="w-12 h-10 hidden  sm:inline " color="gray" pill>
           <FaMoon />
         </Button>
-        <Link to="/sign-in">
-          <Button gradientDuoTone="purpleToBlue" outline>
-            Sign In
-          </Button>
-        </Link>
+        {!user ? (
+          <Link to="/sign-in">
+            <Button gradientDuoTone="purpleToBlue" outline>
+              Sign In
+            </Button>
+          </Link>
+        ) : (
+          <Dropdown
+            arrowIcon={false}
+            inline
+            label={<Avatar alt="User" img={user.profilePicture} rounded />}
+          >
+            <Dropdown.Header>
+              <span className=" block text-sm">@{user.email}</span>
+            </Dropdown.Header>
+            <Link to="/dashboard?tab=profile">
+              <Dropdown.Item>Profile</Dropdown.Item>
+            </Link>
+            <Dropdown.Divider />
+            <Dropdown.Item>Signout</Dropdown.Item>
+          </Dropdown>
+        )}
+
         <Navbar.Toggle />
       </div>
       <Navbar.Collapse>
